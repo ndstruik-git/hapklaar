@@ -1,5 +1,5 @@
 /* Hapklaar service worker: the app opens instantly and offline. Data goes through the page itself. */
-const VERSION = 'hapklaar-2026.10.05';
+const VERSION = 'hapklaar-2026.10.19';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png', './favicon-32.png'];
 
 self.addEventListener('install', e => {

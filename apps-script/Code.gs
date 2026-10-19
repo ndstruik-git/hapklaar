@@ -20,7 +20,7 @@ const SCHEMA = {
   recepten: { tab: 'Recepten', key: 'id', cols: [['id', 's'], ['naam', 's'], ['tags', 'list'], ['ingredienten', 'list'], ['aangemaakt_op', 's']] },
   ingredienten: { tab: 'Ingredienten', key: 'id', cols: [['id', 's'], ['naam', 's'], ['categorie', 's'], ['categorie_bron', 's'], ['is_voorraad', 'b']] },
   planning: { tab: 'Planning', key: 'datum', sort: true, cols: [['datum', 's'], ['type', 's'], ['recept_id', 's'], ['tekst', 's']] },
-  boodschappen: { tab: 'Boodschappen', key: 'id', sort: true, cols: [['id', 's'], ['week_start', 's'], ['ingredient_id', 's'], ['extra', 'b'], ['voorraad_actief', 'b'], ['afgevinkt', 'b'], ['afgevinkt_op', 's']] }
+  boodschappen: { tab: 'Boodschappen', key: 'id', sort: true, cols: [['id', 's'], ['week_start', 's'], ['ingredient_id', 's'], ['extra', 'b'], ['voorraad_actief', 'b'], ['afgevinkt', 'b'], ['afgevinkt_op', 's'], ['opmerking', 's']] }
 };
 const CAT_TAB = 'Categorieen';
 const DEFAULT_CATS = ['Groente & fruit', 'Brood & bakkerij', 'Zuivel & eieren', 'Kaas & vleeswaren', 'Vlees & vis', 'Vega', 'Pasta, rijst & wereldkeuken', 'Conserven & sauzen', 'Kruiden & specerijen', 'Ontbijt & beleg', 'Diepvries', 'Snacks', 'Dranken', 'Huishouden & verzorging', 'Overig'];

@@ -109,7 +109,7 @@ h1,h2,h3{font-family:var(--font-display);text-wrap:balance;margin:0;letter-spaci
 .day.today .dd{background:var(--accent);color:var(--on-accent);border-radius:12px;padding:6px 0}
 .day.today .dd small{color:var(--on-accent)}
 .meal{font-weight:600;font-size:16.5px;min-width:0;overflow-wrap:anywhere}
-.meal.open{font-weight:500;color:var(--muted)}
+.meal.open,.meal.skip{font-weight:500;color:var(--muted)}
 .meal .kind{display:inline-flex;align-items:center;gap:6px}
 .chev{color:var(--muted)}
 .mini{display:flex;flex-wrap:wrap;gap:4px 6px;margin-top:5px}
@@ -152,6 +152,7 @@ h1,h2,h3{font-family:var(--font-display);text-wrap:balance;margin:0;letter-spaci
 .nm b{display:block;font-weight:500;font-size:16.5px;overflow-wrap:anywhere}
 .nm small{display:block;font-size:12.5px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .item.done .nm b{text-decoration:line-through;color:var(--muted)}
+.nm small.opm{color:var(--ink);font-style:italic;white-space:normal;overflow-wrap:anywhere}
 .tag-x{font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--primary);margin-left:6px}
 .more{width:44px;height:44px;display:grid;place-items:center;color:var(--muted);flex:none;border-radius:50%}
 .basket-h{display:flex;justify-content:space-between;align-items:center;padding:14px 4px 6px}
@@ -212,8 +213,8 @@ h1,h2,h3{font-family:var(--font-display);text-wrap:balance;margin:0;letter-spaci
 .chosen > div{flex:1;min-width:0}
 .chosen small{display:block;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
 .chosen b{font-size:17px}
-.quick{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.q{display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 6px;border-radius:var(--r-md);background:var(--surface);box-shadow:var(--shadow);font-weight:600;font-size:14.5px}
+.quick{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.q{display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 4px;border-radius:var(--r-md);background:var(--surface);box-shadow:var(--shadow);font-weight:600;font-size:13.5px;text-align:center;line-height:1.15}
 .q svg{color:var(--primary)}
 .q.on{outline:2.5px solid var(--primary)}
 .sugs{display:flex;flex-direction:column;gap:8px}
@@ -243,7 +244,9 @@ h1,h2,h3{font-family:var(--font-display);text-wrap:balance;margin:0;letter-spaci
 .sheet.tall{height:calc(100% - 24px - env(safe-area-inset-top,0px))}
 .sheet-head{display:flex;align-items:center;gap:6px;padding:8px 8px 4px 16px}
 .sheet-head h2{flex:1;font-size:20px;font-weight:700}
-.grab{width:40px;height:4px;border-radius:4px;background:var(--line);margin:8px auto 0}
+.grab{width:40px;height:5px;border-radius:4px;background:var(--line);margin:0 auto;padding:10px 60px 4px;background-clip:content-box;box-sizing:content-box;cursor:grab;touch-action:none}
+.sheet-head{touch-action:none}
+.sheet.dragging{transition:none!important;animation:none}
 .sheet-body{flex:1;overflow-y:auto;padding:4px 16px 16px;display:flex;flex-direction:column;gap:18px;overscroll-behavior:contain}
 .sheet-foot{padding:10px 16px calc(12px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);display:flex;gap:10px}
 @keyframes up{from{transform:translateY(40px);opacity:0}}
@@ -304,9 +307,9 @@ const MS=['jan','feb','mrt','apr','mei','jun','jul','aug','sep','okt','nov','dec
 const COLS=['recepten','ingredienten','planning','boodschappen','agenda'];
 const DATA_COLS=['recepten','ingredienten','planning','boodschappen'];
 const API_RE=/^https:\/\/script\.google\.com\/(a\/[^/]+\/)?macros\/s\/[\w-]+\/exec$/;
-const VERSION='2026.10.05';
+const VERSION='2026.10.19';
 const COOLDOWN=21;
-const KINDS={uit_eten:'Uit eten',restjes:'Restjes',afhaal:'Afhaal'};
+const KINDS={uit_eten:'Uit eten',restjes:'Restjes',afhaal:'Afhaal',geen:'Niks nodig'};
 
 /* Local category guesses: common Dutch groceries. Anything unknown goes to Claude, then to Overig. */
 const DICT={
@@ -410,6 +413,7 @@ const I={
  uit_eten:'<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3v8M4.5 3v5a2.5 2.5 0 0 0 5 0V3M7 11v10"/><path d="M17 21V3c-2.2 1.2-3.5 3.7-3.5 7v3H17"/></svg>',
  restjes:'<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="9" width="17" height="10.5" rx="2.5"/><path d="M2.5 9h19M8 5.5h8"/></svg>',
  afhaal:'<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8h14l-1.2 12H6.2z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/></svg>',
+ geen:'<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M8 12h8"/></svg>',
  gear:'<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>',
  pen:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg>',
  spark:'<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.9 6.1L20 10l-6.1 1.9L12 18l-1.9-6.1L4 10l6.1-1.9z"/></svg>'
@@ -522,8 +526,9 @@ function del(col,id){if(!(id in S[col]))return;const o={...S[col]};delete o[id];
 function ingIdFor(n){const s=slug(n);return s?'i-'+s:rid('i-')}
 function ensureIngredient(name){
   const n=norm(name);if(!n)return null;
-  const id=ingIdFor(n);
-  if(S.ingredienten[id])return S.ingredienten[id];
+  const byName=Object.values(S.ingredienten).find(i=>i.naam===n);if(byName)return byName;
+  let id=ingIdFor(n);
+  if(S.ingredienten[id])id=rid('i-');
   const g=guessCategory(n);
   const ing={id,naam:n,categorie:g||'Overig',categorie_bron:g?'lijst':'ai-wacht',is_voorraad:STAPLES.has(n)};
   put('ingredienten',id,ing);
@@ -552,7 +557,7 @@ function updRec(ws,ingId,patch){
   const id=recKey(ws,ingId);
   const cur=S.boodschappen[id]||{week_start:ws,ingredient_id:ingId,extra:false,voorraad_actief:false,afgevinkt:false,afgevinkt_op:null};
   const next={...cur,...patch};
-  if(!next.extra&&!next.voorraad_actief&&!next.afgevinkt)del('boodschappen',id);else put('boodschappen',id,next);
+  if(!next.extra&&!next.voorraad_actief&&!next.afgevinkt&&!next.opmerking)del('boodschappen',id);else put('boodschappen',id,next);
 }
 function buildList(ws){
   const map={};
@@ -732,7 +737,7 @@ function addExtras(text){
 function copyList(){
   const ws=UI.week;const L=buildList(ws);
   const lines=[`Boodschappen ${fmtRange(ws)}`];
-  for(const g of L.groups){lines.push('',g.cat);for(const it of g.items)lines.push('- '+it.ing.naam)}
+  for(const g of L.groups){lines.push('',g.cat);for(const it of g.items)lines.push('- '+it.ing.naam+(it.rec&&it.rec.opmerking?` (${it.rec.opmerking})`:''))}
   const text=lines.join('\n');
   const ok=()=>toast('Lijst gekopieerd');
   try{navigator.clipboard.writeText(text).then(ok,()=>fallbackCopy(text))}catch(e){fallbackCopy(text)}
@@ -753,7 +758,7 @@ function weekSwitcher(){
 }
 function mealHtml(p){
   if(!p)return`<div class="meal open">Nog niks gepland</div>`;
-  if(KINDS[p.type])return`<div class="meal"><span class="kind">${I[p.type].replace('width="24" height="24"','width="18" height="18"')}${KINDS[p.type]}</span></div>`;
+  if(KINDS[p.type])return`<div class="meal ${p.type==='geen'?'skip':''}"><span class="kind">${I[p.type].replace('width="24" height="24"','width="18" height="18"')}${KINDS[p.type]}</span></div>`;
   return`<div class="meal">${esc(recipeName(p))}</div>`;
 }
 function evChips(evs,max=2){
@@ -795,7 +800,7 @@ function listView(){
   const stock=L.stock.length?`<section class="stock"><p>Meestal in huis. Nodig? Tik om toe te voegen.</p><div class="chips">${L.stock.map(it=>`<button class="chip add-stock" data-k="s-${it.id}" data-act="stock-add" data-id="${it.id}">${I.plus}${esc(it.ing.naam)}</button>`).join('')}</div></section>`:'';
   const item=(it,done)=>{
     const sub=srcLine(it);const rec=it.rec||{};
-    return`<div class="item ${done?'done':''}" data-k="${done?'b-':'o-'}${it.id}"><button class="tick" data-act="${done?'untick':'tick'}" data-id="${it.id}" aria-pressed="${done}"><span class="box">${done?I.check:''}</span><span class="nm"><b>${esc(cap1(it.ing.naam))}${rec.extra&&!it.sources.length?'<span class="tag-x">extra</span>':''}${rec.voorraad_actief?'<span class="tag-x">voorraad</span>':''}</b>${sub?`<small>${esc(sub)}</small>`:''}</span></button><button class="more" data-act="ing-sheet" data-id="${it.id}" aria-label="Opties voor ${esc(it.ing.naam)}">${I.dots}</button></div>`;
+    return`<div class="item ${done?'done':''}" data-k="${done?'b-':'o-'}${it.id}"><button class="tick" data-act="${done?'untick':'tick'}" data-id="${it.id}" aria-pressed="${done}"><span class="box">${done?I.check:''}</span><span class="nm"><b>${esc(cap1(it.ing.naam))}${rec.extra&&!it.sources.length?'<span class="tag-x">extra</span>':''}${rec.voorraad_actief?'<span class="tag-x">voorraad</span>':''}</b>${rec.opmerking?`<small class="opm">${esc(rec.opmerking)}</small>`:''}${sub?`<small>${esc(sub)}</small>`:''}</span></button><button class="more" data-act="ing-sheet" data-id="${it.id}" aria-label="Opties voor ${esc(it.ing.naam)}">${I.dots}</button></div>`;
   };
   const groups=L.groups.map(g=>`<section class="cat" data-k="c-${g.cat}"><div class="cat-h"><h3>${esc(g.cat)}</h3><span>${g.items.length}</span></div><div class="items">${g.items.map(i=>item(i,false)).join('')}</div></section>`).join('');
   const basket=L.basket.length?`<section class="cat"><div class="basket-h"><h3 style="font-size:15px">In je mandje · ${L.basket.length}</h3><button class="btn sm ghost" data-act="toggle-basket">${UI.showBasket?'Verberg':'Toon'}</button></div>${UI.showBasket?`<div class="items">${L.basket.map(i=>item(i,true)).join('')}</div>`:''}</section>`:'';
@@ -928,13 +933,34 @@ function ingSheet(s){
   const i=S.ingredienten[s.id];if(!i)return'';
   const rec=S.boodschappen[recKey(UI.week,s.id)];
   const src={lijst:'automatisch gesorteerd',ai:'gesorteerd door Claude','ai-wacht':'wacht op sortering',handmatig:'door jullie gekozen'}[i.categorie_bron]||'';
+  const uses=Object.values(S.recepten).filter(r=>(r.ingredienten||[]).includes(i.id)).length;
   return`<div class="scrim" data-act="sheet-close"></div><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sh-t"><div class="grab"></div><div class="sheet-head"><h2 id="sh-t">${esc(cap1(i.naam))}</h2><button class="icon-btn" data-act="sheet-close" aria-label="Sluiten">${I.x}</button></div>
   <div class="sheet-body">
+   <div class="field"><label for="ing-note">Opmerking voor ${esc(weekName(UI.week).toLowerCase())}</label><input class="inp" id="ing-note" data-model="sheet.note" value="${esc(s.note)}" placeholder="Bijv. 2 bakjes, de lactosevrije" enterkeyhint="done" autocomplete="off" maxlength="80"><p class="hint">Staat onder het item op de lijst, alleen voor deze week.</p></div>
+   <div class="field"><label for="ing-naam">Naam</label><input class="inp" id="ing-naam" data-model="sheet.naam" value="${esc(s.naam)}" enterkeyhint="done" autocomplete="off" autocapitalize="none" maxlength="48">${s.err?`<p class="err">${esc(s.err)}</p>`:`<p class="hint">${uses?`Verandert ook in ${uses===1?'het recept':`de ${uses} recepten`} waar het in staat.`:'Verandert overal waar dit item staat.'}</p>`}</div>
    <div class="field"><span class="lbl">Schap${src?` · ${src}`:''}</span><div class="catgrid">${CATS.map(c=>`<button class="chip ${i.categorie===c?'on':''}" data-act="set-cat" data-cat="${esc(c)}">${esc(c)}</button>`).join('')}</div><p class="hint">Hapklaar onthoudt dit voor elke volgende week.</p></div>
    <button class="switch ${i.is_voorraad?'on':''}" data-act="toggle-stock" role="switch" aria-checked="${!!i.is_voorraad}"><span><b>Meestal in huis</b><small>Komt dan grijs bovenaan de lijst, om eerst thuis te checken</small></span><span class="tg"></span></button>
    ${rec&&(rec.extra||rec.voorraad_actief)?`<button class="btn danger" data-act="rm-from-list">Van deze lijst halen</button>`:''}
-  </div></div>`;
+  </div>
+  <div class="sheet-foot"><button class="btn primary block" data-act="sheet-close">Klaar</button></div></div>`;
 }
+/* Saves the name and note typed in the item sheet. Returns false when the sheet has to stay open (name clash). */
+function commitIngSheet(){
+  const s=UI.sheet;if(!s||s.type!=='ing')return true;
+  const i=S.ingredienten[s.id];if(!i)return true;
+  const naam=norm(s.naam).slice(0,48);
+  if(naam&&naam!==i.naam){
+    const clash=Object.values(S.ingredienten).find(x=>x.id!==i.id&&x.naam===naam);
+    if(clash){s.err=`“${naam}” bestaat al als apart item. Kies een andere naam.`;render();document.getElementById('ing-naam')?.focus();return false}
+    put('ingredienten',i.id,{...i,naam});
+    toast(`Hernoemd naar ${naam}`);
+  }
+  const note=String(s.note||'').trim().slice(0,80);
+  const rec=S.boodschappen[recKey(UI.week,s.id)];
+  if(note!==((rec&&rec.opmerking)||''))updRec(UI.week,s.id,{opmerking:note});
+  return true;
+}
+function closeSheet(){if(!commitIngSheet())return false;UI.sheet=null;UI.armed=null;render();return true}
 function settingsSheet(){
   const n=Sync.count();
   const last=Sync.lastOk?new Date(Sync.lastOk):null;
@@ -1029,12 +1055,13 @@ document.addEventListener('submit',e=>{
   if(e.target.dataset.form==='add-extra'){const inp=document.getElementById('list-add');const v=inp.value;if(!v.trim())return;addExtras(v);inp.value='';UI.listQ='';render()}
 });
 document.addEventListener('keydown',e=>{
-  if(e.key==='Escape'){if(UI.sheet){UI.sheet=null;render()}else if(UI.wiz){UI.wiz=null;render()}return}
+  if(e.key==='Escape'){if(UI.sheet){closeSheet()}else if(UI.wiz){UI.wiz=null;render()}return}
   if(e.key!=='Enter'||e.isComposing)return;
   const id=e.target.id;
   if(id==='ed-naam'){e.preventDefault();document.getElementById('ed-ing')?.focus()}
   else if(id==='ed-ing'){e.preventDefault();if(e.target.value.trim()){edAddIngredients(e.target.value);e.target.value=''}}
   else if(id==='ed-tag'){e.preventDefault();addTagFromInput()}
+  else if(id==='ing-naam'||id==='ing-note'){e.preventDefault();closeSheet()}
   else if(id==='wiz-q'){e.preventDefault();const b=document.querySelector('#wiz-body .sug');if(b&&UI.wiz.q.trim())b.click()}
 });
 function addTagFromInput(){const ed=UI.sheet;const t=norm(ed.tagQ);if(!t)return;if(!ed.tags.includes(t))ed.tags.push(t);ed.tagQ='';const el=document.getElementById('ed-tag');if(el)el.value='';render()}
@@ -1060,7 +1087,7 @@ const A={
   rtag(el){UI.rtag=el.dataset.tag||null;render()},
   'remove-examples'(){if(UI.armed==='ex'){UI.armed=null;removeExamples()}else arm('ex')},
   'keep-examples'(){keepExamples()},
-  'sheet-close'(){UI.sheet=null;UI.armed=null;render()},
+  'sheet-close'(){closeSheet()},
   'ed-rm'(el){const ed=UI.sheet;ed.ings=ed.ings.filter(x=>x!==el.dataset.id);render()},
   'ed-ac'(el){const ed=UI.sheet;if(!ed.ings.includes(el.dataset.id))ed.ings.push(el.dataset.id);ed.ingQ='';const i=document.getElementById('ed-ing');if(i){i.value='';i.focus()}render()},
   'ed-add'(){const i=document.getElementById('ed-ing');edAddIngredients(UI.sheet.ingQ);if(i){i.value='';i.focus()}},
@@ -1071,10 +1098,10 @@ const A={
   tick(el){updRec(UI.week,el.dataset.id,{afgevinkt:true,afgevinkt_op:new Date().toISOString()});try{navigator.vibrate&&navigator.vibrate(8)}catch(e){}},
   untick(el){updRec(UI.week,el.dataset.id,{afgevinkt:false,afgevinkt_op:null})},
   'stock-add'(el){updRec(UI.week,el.dataset.id,{voorraad_actief:true})},
-  'ing-sheet'(el){UI.sheet={type:'ing',id:el.dataset.id};render()},
-  'set-cat'(el){const i=S.ingredienten[UI.sheet.id];put('ingredienten',i.id,{...i,categorie:el.dataset.cat,categorie_bron:'handmatig'});UI.sheet=null;toast(`${cap1(i.naam)} staat nu bij ${el.dataset.cat}`)},
+  'ing-sheet'(el){const id=el.dataset.id;const i=S.ingredienten[id];if(!i)return;const rec=S.boodschappen[recKey(UI.week,id)];UI.sheet={type:'ing',id,naam:i.naam,note:(rec&&rec.opmerking)||'',err:''};render()},
+  'set-cat'(el){const i=S.ingredienten[UI.sheet.id];if(i.categorie===el.dataset.cat)return;put('ingredienten',i.id,{...i,categorie:el.dataset.cat,categorie_bron:'handmatig'});toast(`${cap1(i.naam)} staat nu bij ${el.dataset.cat}`)},
   'toggle-stock'(){const i=S.ingredienten[UI.sheet.id];put('ingredienten',i.id,{...i,is_voorraad:!i.is_voorraad})},
-  'rm-from-list'(){updRec(UI.week,UI.sheet.id,{extra:false,voorraad_actief:false});UI.sheet=null;render()},
+  'rm-from-list'(){updRec(UI.week,UI.sheet.id,{extra:false,voorraad_actief:false,opmerking:''});UI.sheet=null;render()},
   'toggle-basket'(){UI.showBasket=!UI.showBasket;render()},
   'copy-list'(){copyList()},
   undo(){const u=UI.toast&&UI.toast.undo;UI.toast=null;if(u)u();render()},
@@ -1088,6 +1115,36 @@ document.addEventListener('click',e=>{
   const el=e.target.closest('[data-act]');if(!el||el.disabled)return;
   const f=A[el.dataset.act];if(f){e.preventDefault();f(el,e)}
 });
+
+/* swipe a sheet down by its grab bar or header to close it */
+let drag=null;
+document.addEventListener('pointerdown',e=>{
+  if(e.button>0)return;
+  const h=e.target.closest('.grab,.sheet-head');if(!h||e.target.closest('button,input,textarea,a'))return;
+  const sh=h.closest('.sheet');if(!sh)return;
+  drag={sh,id:e.pointerId,y0:e.clientY,dy:0,t0:performance.now()};
+  sh.classList.add('dragging');
+});
+document.addEventListener('pointermove',e=>{
+  if(!drag||e.pointerId!==drag.id)return;
+  drag.dy=Math.max(0,e.clientY-drag.y0);
+  drag.sh.style.transform=`translateY(${drag.dy}px)`;
+  const sc=document.querySelector('.scrim');if(sc)sc.style.opacity=String(Math.max(.2,1-drag.dy/400));
+});
+function endDrag(e){
+  if(!drag||e.pointerId!==drag.id)return;
+  const d=drag;drag=null;
+  const speed=d.dy/Math.max(1,performance.now()-d.t0);
+  const sc=document.querySelector('.scrim');
+  const back=()=>{d.sh.classList.remove('dragging');d.sh.style.transition='transform .2s ease-out';d.sh.style.transform='';if(sc)sc.style.opacity='';setTimeout(()=>{d.sh.style.transition=''},220)};
+  if(d.dy>110||(d.dy>40&&speed>.6)){
+    d.sh.classList.remove('dragging');d.sh.style.transition='transform .18s ease-in';d.sh.style.transform='translateY(100%)';
+    setTimeout(()=>{if(!closeSheet())back()},170);
+  }else if(d.dy>0)back();
+  else d.sh.classList.remove('dragging');
+}
+document.addEventListener('pointerup',endDrag);
+document.addEventListener('pointercancel',endDrag);
 
 /* keep the screen on while shopping */
 let lock=null;
